@@ -5,23 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.js"></script>
+  <script src="./p5.js"></script>
   <title>VideoCam</title>
   </head>
   <body>
-    <span id="status">
-    </span>
-    <img id="image" src="./assets/gato.jpg" width="200" alt="imagem aleatoria">
-    <video id="video" width="254px"></video>
-    <button id="openCam">
-      Abrir camera
-      </button>
-    <button id="closeCam">
-      Fechar camera
-      </button>
-      <div id="results">
-
-      </div>
+    <button id="button-cam">Handle Cam</button>
+    <button id="swap-cam">Swap cam</button>
+    <span id="message"></span>
+    <video id="video" width="382" height="220"></video>
+    <div id="result-container">
+    </div>
+    <h3>
+      Mais confiáveis
+    </h3>
+    <p>Infelizmente como já é um modelo pré treinado, pode acontecer vários erros</p>
+    <table id="table">
+      <tr>
+        <th>Name</th>
+        <th>Confidence</th>
+      </tr>
+      <tr id="table-result">
+      </tr>
+    </table>
     <script src="./index.js"></script>
 </body>
 </html>

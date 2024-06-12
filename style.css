@@ -11,7 +11,38 @@ body{
   flex-direction: column;
   justify-content: baseline;
   align-items: center;
+  gap: 2rem;
 }
-img{
-  border-radius: 0.5rem;
+
+#swap-cam{
+  display: none;
+}
+
+#video{
+  border-radius: 1rem;
+}
+#result-container{
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+#result-content {
+  display: flex;
+  gap: 1rem;
+}
+
+#table{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 30vh;
+  width: 100%;
+  overflow: scroll;
+}
+#table tr{
+  display: flex;
+  gap: 1rem;
 }

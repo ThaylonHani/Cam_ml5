@@ -1,78 +1,82 @@
-const button = document.querySelector("#openCam");
-const closeButton = document.getElementById("closeCam");
-const image = document.getElementById("image");
-const resultsContainer = document.getElementById("results");
-const video = document.querySelector("#video");
-const classifier = ml5.imageClassifier("MobileNet", modelLoaded);
-const classifierVideo = ml5.imageClassifier("MobileNet", video, modelLoaded);
-const state = document.getElementById("status");
-
+const video = document.getElementById("video");
+const result = document.getElementById("result");
+const confidence = document.getElementById("confidence");
+const message = document.getElementById("message");
+const resultContainer = document.getElementById("result-container");
+const table = document.getElementById("table");
+const tableResult = document.getElementById("table-result");
+const buttonCam = document.getElementById("button-cam");
+const buttonSwapCam = document.getElementById("swap-cam");
+let arrayConfidences = [{}];
+let cam = false;
 function handleOpenCam() {
-  state.textContent = "carregando";
-  navigator.mediaDevices
-  .getUserMedia({ video: true })
-  .then(function (mediaStream) {
-    video.srcObject = mediaStream;
-    video.play();
-    state.textContent = "";
-    classifierVideo.predict(video, results => resultsContainer.innerText = results[0].label)
-    })
-    .catch(function (err) {
-      console.log("Não há permissões para acessar a webcam");
-      document.getElementById("status").textContent = `${err.message}`;
+  if (cam) {
+    cam = false;
+    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+      message.innerText = "Closing cam";
+      video.srcObject = null;
+      resultContainer.innerText = "";
+      result.innerText = "";
+      video.stop();
+      stream.getVideoTracks()[0].stop();
     });
-}
-
-function handleCloseCam() {
-  state.textContent = 'carregando';
-  navigator.mediaDevices
-  .getUserMedia({ video: true })
-  .then(function (mediaStream) {
-    video.srcObject = null;
-    video.pause();
-    mediaStream.getVideoTracks()[0].stop();
-    state.textContent = "";
-    classifierVideo.predict(video, results => resultsContainer.innerText = results[0].label)
-    })
-    .catch(function (err) {
-      document.getElementById("status").textContent = `${err.message}`;
+  } else {
+    cam = true;
+    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+      message.innerText = "Opening Cam and loading model";
+      video.srcObject = stream;
+      video.play();
+      video.style.transform = "scaleX(-1)";
     });
+  }
 }
-
-function handlePicture() {
-  navigator.mediaDevices.getUserMedia()
+function modelLoaded(classifier) {
+  console.log("model loaded");
+  setTimeout(() => {
+    loop(classifier);
+  },2000)
 }
-
-
-
-function modelLoaded() {
-  console.log("Model Loaded!");
-}
-function handleImage() {
-  classifier.predict(document.getElementById("image"), (err, results) => {
-    if (err) {
-      console.log(err.message);
-    } else {
-      console.log(results)
-      results.map((result) => {
-        resultsContainer.insertAdjacentHTML('beforeend',`<hr/><p>name:${result.label} <br/> confidence:<strong>${result.confidence.toFixed(2)}</strong> </p> <hr/> `)  ;
-      })
-    }
+const loop = (classifier) => {
+  message.innerText = "";
+  classifier.classify().then((results) => {
+    resultContainer.innerHTML = "";
+    results.map((result) => {
+      if (
+        result.confidence > 0.7 &&
+        arrayConfidences.findIndex((item) => item.name == result.label) == -1
+      ) {
+        arrayConfidences.push(...arrayConfidences, {
+          name: result.label,
+          confidence: result.confidence,
+        });
+        handleTable(result.label, result.confidence);
+      }
+      resultContainer.insertAdjacentHTML(
+        "beforeend",
+        `
+        <section id="result-content">
+          <p id="result">${result.label}</p>
+        <strong id="confidence">${result.confidence.toFixed(2)}</strong>
+        </section>
+        `
+      );
+    });
+    setTimeout(() => {
+      loop(classifier);
+    }, 1000);
   });
+};
+function handleTable(name, confidence) {
+  if (arrayConfidences.length > 0) {
+    tableResult.insertAdjacentHTML(
+      "beforebegin",
+      `
+          <td>${name}</td>
+          <td>${confidence.toFixed(2)}</td>
+        `
+    );
+  }
 }
 
-button.addEventListener("click", () => handleOpenCam());
-closeButton.addEventListener("click", () => handleCloseCam());
-image.addEventListener("click", () => handleImage());
-
-
-// const loop = classifier => {
-//   classifier.classify().then(results => {
-//     results.innerText = results[0].label;
-//     probability.innerText = results[0].confidence.toFixed(4);
-//     loop(classifier); // Call again to create a loop
-//   });
-// };
-
-// Initialize the Image Classifier method with MobileNet passing the video as the
-// second argument and the getClassification function as the third
+ml5.imageClassifier("MobileNet", video).then((classifier) => modelLoaded(classifier));
+buttonCam.addEventListener("click", () => handleOpenCam());
