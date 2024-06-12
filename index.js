@@ -1,22 +1,40 @@
 const button = document.querySelector("#openCam");
+const closeButton = document.getElementById("closeCam");
 const image = document.getElementById("image");
 const resultsContainer = document.getElementById("results");
 const video = document.querySelector("#video");
 const classifier = ml5.imageClassifier("MobileNet", modelLoaded);
 const classifierVideo = ml5.imageClassifier("MobileNet", video, modelLoaded);
+const state = document.getElementById("status");
 
 function handleOpenCam() {
-  document.getElementById("status").textContent = "carregando";
+  state.textContent = "carregando";
   navigator.mediaDevices
-    .getUserMedia({ video: true })
-    .then(function (mediaStream) {
-      video.srcObject = mediaStream;
-      video.play();
-      document.getElementById("status").textContent = "";
-      classifierVideo.predict(video, results => resultsContainer.innerText = results[0].label)
+  .getUserMedia({ video: true })
+  .then(function (mediaStream) {
+    video.srcObject = mediaStream;
+    video.play();
+    state.textContent = "";
+    classifierVideo.predict(video, results => resultsContainer.innerText = results[0].label)
     })
     .catch(function (err) {
       console.log("Não há permissões para acessar a webcam");
+      document.getElementById("status").textContent = `${err.message}`;
+    });
+}
+
+function handleCloseCam() {
+  state.textContent = 'carregando';
+  navigator.mediaDevices
+  .getUserMedia({ video: true })
+  .then(function (mediaStream) {
+    video.srcObject = null;
+    video.pause();
+    mediaStream.getVideoTracks()[0].stop();
+    state.textContent = "";
+    classifierVideo.predict(video, results => resultsContainer.innerText = results[0].label)
+    })
+    .catch(function (err) {
       document.getElementById("status").textContent = `${err.message}`;
     });
 }
@@ -44,6 +62,7 @@ function handleImage() {
 }
 
 button.addEventListener("click", () => handleOpenCam());
+closeButton.addEventListener("click", () => handleCloseCam());
 image.addEventListener("click", () => handleImage());
 
 
